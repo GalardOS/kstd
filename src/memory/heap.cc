@@ -6,7 +6,7 @@ namespace kstd {
     }
 
     void* heap_allocate(uint32 size) {
-
+        return nullptr;
     }
 
     void heap_deallocate(void* ptr) {
