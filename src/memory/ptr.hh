@@ -2,7 +2,8 @@
 
 /*
  * TODOs:
- *    - add mutex to refcount control block if multithreading is added. 
+ *    - add mutex to refcount control block if multithreading is added.
+ *    - templated allocation to internal pointer allocation (reference -> std::make_shared)
  */
 
 namespace kstd {
