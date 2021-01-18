@@ -15,7 +15,7 @@ namespace kstd {
     void ___heap_initialize(uint64* buffer, uint32 size) {
         // Setup heap start and size
         memory_buffer = buffer;
-        memory_size = size / 4;
+        memory_size = size / 8;
 
         // Set the first meta block to free (highest bit is 0)
         ((meta_block*)(memory_buffer))->size_in_blocks = memory_size;
