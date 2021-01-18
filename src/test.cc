@@ -25,8 +25,13 @@ bool container_test() {
     return true;
 }
 
+constexpr uint32 HEAP_SIZE = 15 * 4 * 1024;
+
 int main(int argc, char** argv) {
-    kstd::___initialization_params params;
+    kstd::___initialization_params params {
+        .heap_start = std::malloc(HEAP_SIZE),
+        .heap_size = HEAP_SIZE
+    };
 
     kstd::___initialize(params);
 
