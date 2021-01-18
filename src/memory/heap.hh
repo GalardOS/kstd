@@ -8,7 +8,7 @@ namespace kstd {
         uint32 heap_size;
     };
 
-    void ___heap_initialize(const ___heap_params& params);
+    void ___heap_initialize(uint32* buffer, uint32 size);
 
     void* heap_allocate(uint32 size);
     void heap_deallocate(void* ptr);

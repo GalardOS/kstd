@@ -8,6 +8,6 @@ namespace kstd {
             .heap_start = params.heap_start,
             .heap_size = params.heap_size
         };
-        ___heap_initialize(hparams);
+        ___heap_initialize(static_cast<uint32*>(params.heap_start), params.heap_size);
     }
 }
