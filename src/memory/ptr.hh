@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common.hh"
+
 /*
  * TODOs:
  *    - add mutex to refcount control block if multithreading is added.
@@ -7,6 +9,8 @@
  */
 
 namespace kstd {
+
+
     template<typename type>
     class ptr {
     public: 
@@ -26,6 +30,8 @@ namespace kstd {
             result.control_block = new refcount_control;
             result.control_block->num_references = 1;
 
+            std::cout << "Allocated" << std::endl;
+
             return result;
         }
 
@@ -34,7 +40,12 @@ namespace kstd {
          * that this constructor does not allocate anything. Allocation 
          * should be done with ptr::allocate.
          */
-        ptr() = default;
+        ptr() 
+            : allocated(false),
+              control_block(nullptr),
+              pointer(nullptr) {
+
+        }
 
         /*
          * Copy constructor of this class. Increases the reference count 
@@ -47,9 +58,25 @@ namespace kstd {
             control_block->num_references++;
 
             // Copy the pointer 
-            pointer = cpy.control_block;
+            pointer = cpy.pointer;
 
             allocated = true;
+
+            std::cout << "Copy created: " << control_block->num_references << std::endl;
+        }
+
+        void operator=(const ptr<type>& cpy) {
+            // Point the control block to the copied one and
+            // increase the reference count
+            control_block = cpy.control_block;
+            control_block->num_references++;
+
+            // Copy the pointer 
+            pointer = cpy.pointer;
+
+            allocated = true;
+
+            std::cout << "Copy created: " << control_block->num_references << std::endl;
         }
 
         /*
@@ -60,9 +87,12 @@ namespace kstd {
             // If the control block is nullptr there is no need
             // to free any memory neither reduce the reference count
             if(control_block != nullptr) {
+
                 // Decrease the number of references
                 control_block->num_references--;
             
+                std::cout << "Dealocating, now " << control_block->num_references << " references\n";
+                
                 // If this pointer is no longer referenced
                 // delete the control block and pointer itself
                 if(control_block->num_references == 0) {
@@ -82,13 +112,11 @@ namespace kstd {
          * 
          * return: true if allocated, false if not
          */
-        bool allocated() const { return allocated; }
+        bool is_allocated() { return allocated; }
     private:
         struct refcount_control {
             uint16 num_references;
-        };
-
-        refcount_control* control_block;
+        }* control_block;
 
         type* pointer;
 

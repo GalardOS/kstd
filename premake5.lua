@@ -13,3 +13,4 @@ project "kstd"
     objdir("build/obj/")
 
     files {"src/**.cc", "src/**.hh"}
+    includedirs { "src/" }
