@@ -1,63 +1,67 @@
 #include "heap.hh"
+#include <iostream>
 
-#define BLOCK_DEFINE_OCUP(size)         ((size) | BIT(31))
-#define BLOCK_DEFINE_EMPTY(size)        ((size) & (~BIT(31)))
-#define BLOCK_GET_AVAILABLE(x)          (((x) >> 31) & 1)
-#define BLOCK_GET_SIZE(x)               ((x) & 0xEFFFFFFF)
+#define DEBUG(x) std::cout << x << std::endl;
 
 namespace kstd {
+    struct meta_block {
+        uint32 size_in_blocks;
+        uint32 status;
+    }__attribute__((packed));
 
-    static uint32* memory_buffer;   // Pointer to heap buffer
+    static uint64* memory_buffer;   // Pointer to heap buffer
     static uint32  memory_size;     // Size in 32bit words
 
-    void ___heap_initialize(uint32* buffer, uint32 size) {
+    void ___heap_initialize(uint64* buffer, uint32 size) {
         // Setup heap start and size
         memory_buffer = buffer;
         memory_size = size / 4;
 
         // Set the first meta block to free (highest bit is 0)
-        memory_buffer[0] = 0;
+        ((meta_block*)(memory_buffer))->size_in_blocks = memory_size;
+        ((meta_block*)(memory_buffer))->status = 0;
     }
 
-    void* heap_allocate(uint32 size) {
-        uint32 idx_size = size / 8;
-        
-        bool space_found = false;
-        
-        uint32 block = 0;
-        while(!space_found) {
-            uint32& block_meta = memory_buffer[block];
+    void* alloc(uint32 size) {
+        uint32 index = 0;
+        uint32 size_in_blocks = size / 8;
 
-            // If the block is free check if fits, if fits update
-            // the meta block and return the pointer
-            if(BLOCK_GET_AVAILABLE(block_meta) == 0) {
-                uint32 available_size = block_meta & 0xEFFFFFFF;
+        DEBUG("Allocating " << size_in_blocks << " blocks of memory");
 
-                // If there is not enough space jump go find another
-                // empty block
-                if(size > available_size) {
-                    block += available_size + 1;
-                    continue;
-                }
+        while(true) {
+            DEBUG("Index = " << index);
+            
+            meta_block* meta = (meta_block*)(memory_buffer + index);
 
-                uint32 new_empty_size = available_size - (size + 1);
-                memory_buffer[block + size + 1] = BLOCK_DEFINE_EMPTY(new_empty_size);
+            DEBUG("  size = " << meta->size_in_blocks);
+            DEBUG("  free = " << meta->status);
 
-                // Set block as ocupied and return pointer
-                block_meta = BLOCK_DEFINE_OCUP(size);
+            if(meta->status == 0 && meta->size_in_blocks > size) {
+                DEBUG("Block is free");
                 
-                return memory_buffer + block + 1;
+                // Update the free control block to full
+                ((meta_block*)(memory_buffer + index))->size_in_blocks = size_in_blocks;
+                ((meta_block*)(memory_buffer + index))->status = 1;
+                
+                // Set the next empty node
+                ((meta_block*)(memory_buffer + index + size_in_blocks + 1))->size_in_blocks = memory_size - size_in_blocks - 1;
+                ((meta_block*)(memory_buffer + index + size_in_blocks + 1))->status = 0;
+                
+                return memory_buffer + index + 1;
+            } else {
+                index += meta->size_in_blocks + 1;
+                DEBUG("Not free, next index to search : " << index);
             }
         }
+
+        return nullptr;
     }
 
-    void heap_deallocate(void* ptr) {
-        uint32* casted_pointer = static_cast<uint32*>(ptr);
-        uint32 index = memory_buffer - casted_pointer;
+    void free(void* ptr) {
+        // Point to the control block
+        meta_block* control_block = static_cast<meta_block*>(ptr);
+        control_block--;
 
-        uint32& meta_block = memory_buffer[index - 1];
-        uint32 size = BLOCK_GET_SIZE(meta_block);
-
-        meta_block = BLOCK_DEFINE_EMPTY(size);
+        control_block->status = 0;
     }
 }

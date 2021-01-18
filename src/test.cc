@@ -2,8 +2,9 @@
 
 #include "kstd.hh"
 #include "memory/ptr.hh"
+#include "memory/heap.hh"
 
-#define TEST(fn) std::cout << "[+] " << #fn << std::endl; if(!(fn())) { std::cout << "[ERR] Something went wrong on the test\n"; } std::exit(-1)
+#define TEST(fn) std::cout << "[+] " << #fn << std::endl; if(!(fn())) { std::cout << "[ERR] Something went wrong on the test\n"; }
 
 bool smartptr_test() {
     kstd::ptr<int> intprt; 
@@ -17,6 +18,22 @@ bool smartptr_test() {
     {
         kstd::ptr<int> reference = intprt;
     }
+
+    return true;
+}
+
+bool malloc_test() {
+    std::cout << "Allocating variable a\n";
+    void* a = kstd::alloc(2 * sizeof(uint64));
+    
+    std::cout << "Allocating variable b\n";
+    void* b = kstd::alloc(sizeof(uint64));
+
+    std::cout << "freeing variable a\n";
+    kstd::free(a);
+
+    std::cout << "Allocating variable a\n";
+    a = kstd::alloc(sizeof(uint64));
 
     return true;
 }
@@ -37,4 +54,5 @@ int main(int argc, char** argv) {
 
 
     TEST(smartptr_test);
+    TEST(malloc_test);
 }

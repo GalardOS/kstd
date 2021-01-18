@@ -3,13 +3,8 @@
 #include "common.hh"
 
 namespace kstd {
-    struct ___heap_params {
-        void* heap_start;
-        uint32 heap_size;
-    };
+    void ___heap_initialize(uint64* buffer, uint32 size);
 
-    void ___heap_initialize(uint32* buffer, uint32 size);
-
-    void* heap_allocate(uint32 size);
-    void heap_deallocate(void* ptr);
+    void* alloc(uint32 size);
+    void  free(void* ptr);
 }
